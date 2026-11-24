@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClassTrack - Student Attendance Checker</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; }
+}
+
+body {
+    font-family: 'Courier New', Courier, monospace;
+    background: #f4f7fc;
+    color: #172033;
+    /* space so content isn't hidden behind the fixed header and footer */
+    font-size: 18px;
+    padding-top: 80px;
+    padding-bottom: 70px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    
+    
+}
+
+/* HEADER */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    background: #172554;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    z-index: 1000;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: bold;
+    
+}
+
+.img {
+   
+   
+    width: 80px;
+height: 80px;
+border-radius: 50%;
+object-fit: cover
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin-left: 12px;
+    padding: 8px 14px;
+    font-size: 19px;
+    font-weight: bold;
+    border-radius: 8px;
+    border-bottom: 3px solid transparent;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+nav a:hover {
+    color: #93c5fd;
+    background: #ffffff14;
+}
+
+nav a:active {
+    background: #ffffff26;
+    color: var(--text-main);
+transition: color 0.2s ease-in-out
+}
+
+nav a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 2px;
+}
+
+/* the section you're currently viewing */
+nav a.active {
+    color: #fff;
+    background: #3157d5;
+    border-bottom-color: #93c5fd;
+}
+
+
+/* PAGE LAYOUT: everything stacks in one vertical column */
+.container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    display: grid;
+grid-template-columns: 1fr 1fr;
+gap: var(--space-lg);
+background-color: var(--card-bg);
+border-radius: var(--border-radius);
+
+
+}
+
+section {
+    scroll-margin-top: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.hero {
+    background: linear-gradient(120deg, #172554, #3157d5);
+    color: white;
+    padding: 80px 50px;
+    border-radius: 18px;
+    
+    
+}
+
+.hero h1 {
+    font-size: 52px;
+    margin-bottom: 18px;
+}
+
+.hero p {
+    font-size: 22px;
+    line-height: 1.6;
+}
+
+/* STATS: one card per row */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+}
+
+/* Total Students and Unmarked take the full row */
+.stat-card.wide {
+    grid-column: 1 / -1;
+}
+
+.stat-card {
+    background: white;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px #00000010;
+    
+}
+
+.stat-card h3 {
+    color: #64748b;
+    font-size: 20px;
+}
+
+
+.stat-card p {
+    font-size: 48px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.add-panel {
+    grid-column: 1 / -1;   /* full row, like Total Students */
+    display: block;        /* stop the 2-column layout inside the panel */
+    height: auto;
+}
+
+.panel {
+    background: white;
+    padding: 40px;
+   
+    box-shadow: 0 2px 8px #00000010;
+    grid-column: 1 / -1;   /* full row, like Total Students */
+    display: block;        /* stop the 2-column layout inside the panel */
+    height: auto;
+
+
+}
+
+.panel h2 {
+    font-size: 30px;
+    margin-bottom: 20px;
+    
+    
+}
+
+input, textarea {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    margin: 12px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 18px;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus,
+textarea:focus {
+    border-color: #3157d5;
+    box-shadow: 0 0 0 3px #3157d533;
+}
+
+button {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: bold;
+    font-family: inherit;
+    transition: transform 0.1s, filter 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 4px 10px #00000026;
+    transform: translateY(-2px);
+}
+
+button:active {
+    filter: brightness(0.9);
+    box-shadow: none;
+    transform: translateY(1px);
+}
+
+/* the status currently chosen for a student */
+.actions button.selected {
+    outline: 3px solid #172554;
+    outline-offset: 2px;
+}
+
+.add-btn     { background: #3157d5; color: white; }
+.present-btn { background: #16a34a; color: white; }
+.late-btn    { background: #facc15; color: #172033; }
+.absent-btn  { background: #dc2626; color: white; }
+.excuse-btn  { background: #2563eb; color: white; }
+.clear-btn   { background: #e2e8f0; color: #172033; }
+
+/* ADD STUDENT ROW + STUDENT LIST MENU */
+.add-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.list-btn {
+    background: #172554;
+    color: white;
+}
+
+.menu-wrap {
+    position: relative;
+}
+
+.menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 280px;
+    background: white;
+    border: 1px solid #e5e9f2;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px #00000026;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 10;
+}
+
+.menu[hidden] {
+    display: none;
+}
+
+.menu-item {
+    background: transparent;
+    color: #172033;
+    text-align: left;
+    width: 100%;
+    margin: 0;
+}
+
+.menu-item:hover {
+    background: #eef3ff;
+    filter: none;
+    box-shadow: none;
+    transform: none;
+}
+
+.hint {
+    margin-top: 14px;
+    font-size: 15px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.list-message {
+    margin-top: 12px;
+    font-weight: bold;
+}
+
+.list-message.ok    { color: #16a34a; }
+.list-message.error { color: #dc2626; }
+
+/* STUDENT LIST: each student is a vertical card instead of a wide table row */
+.student-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 20px;
+}
+
+.student-item {
+    border: 1px solid #e5e9f2;
+    border-radius: 12px;
+    padding: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.student-item .label {
+    color: #64748b;
+    font-size: 17px;
+}
+
+.student-item .name {
+    font-size: 26px;
+    font-weight: bold;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.status-present  { color: #16a34a; font-weight: bold; }
+.status-absent   { color: #dc2626; font-weight: bold; }
+.status-late     { color: #ca8a04; font-weight: bold; }
+.status-excused  { color: #2563eb; font-weight: bold; }
+.status-unmarked { color: #64748b; font-weight: bold; }
+
+.empty {
+    color: #64748b;
+    padding: 10px 0;
+}
+
+.about-text {
+    font-size: 19px;
+    line-height: 1.8;
+    color: #64748b;
+}
+
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    font-size: 17px;
+    background: #172554;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 1000;
+}
+
+@media (max-width: 700px) {
+    header {
+        padding: 0 15px;
+    }
+
+    nav a {
+        margin-left: 10px;
+        font-size: 14px;
+    }
+
+    .logo {
+        font-size: 18px;
+    }
+
+    .img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .container {
+        padding: 18px;
+        gap: 25px;
+    }
+
+    .panel {
+        padding: 24px;
+        
+    }
+
+    .hero {
+        padding: 45px 25px;
+    }
+
+    .hero h1 {
+        font-size: 32px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="brand">
+        <img src="student-check-mark-icon-logo-design-educational-institutional-vector-logo-design-templa_825834-14.avif" class="img" alt="ClassTrack logo">
+        <div class="logo">Student Attendance Checker</div>
+    </div>
+
+    <nav>
+        <a href="#home" class="active">Home</a>
+        <a href="#about">About</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#contact">Contact</a>
+    </nav>
+</header>
+
+<main class="container">
+
+<!-- HOME -->
+<section id="home">
+
+    <div class="hero" style="height: 600px;">
+        <h1>Student Attendance Checker</h1>
+        <p>
+            Welcome to Student Attendance Checker! Manage your students'
+            attendance easily and efficiently.
+        </p>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="stats">
+        <div class="stat-card wide">
+            <h3>Total Students</h3>
+            <p id="total">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Present</h3>
+            <p id="present">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Absent</h3>
+            <p id="absent">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Late</h3>
+            <p id="late">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Excuse</h3>
+            <p id="excuse">0</p>
+        </div>
+
+        <div class="stat-card wide">
+            <h3>Unmarked</h3>
+            <p id="unmarked">0</p>
+        </div>
+    </div>
+
+    <!-- ADD STUDENT -->
+    <div class="panel"  >
+        <h2>Add Student</h2>
+
+        <input type="text" id="studentName" placeholder="Enter student name">
+        <input type="text" id="studentID" placeholder="Enter student ID">
+
+        <div class="add-row">
+            <button class="add-btn" onclick="addStudent()">+ Add Student</button>
+
+            <div class="menu-wrap">
+                <button class="list-btn" id="listBtn" type="button"
+                    aria-haspopup="true" aria-expanded="false" aria-controls="listMenu">
+                    &#128206; Student List &#9662;
+                </button>
+
+                <div class="menu" id="listMenu" hidden>
+                    <button class="menu-item" id="uploadItem" type="button">
+                        Upload list (Word, CSV, TXT)
+                    </button>
+                    <button class="menu-item" id="downloadWordItem" type="button">
+                        Download as Word
+                    </button>
+                    <button class="menu-item" id="downloadCsvItem" type="button">
+                        Download as CSV
+                    </button>
+                </div>
+            </div>
+
+            <input type="file" id="listFile" accept=".docx,.csv,.tsv,.txt" hidden>
+        </div>
+
+        <p class="hint">
+            To upload: put one student per line or table row, with the
+            Student ID first and the Name second.
+        </p>
+        <p class="list-message" id="listMessage" role="status" aria-live="polite"></p>
+    </div>
+
+    <!-- ATTENDANCE LIST -->
+    <div class="panel">
+        <h2>Student Attendance List</h2>
+
+        <p id="date"></p>
+
+        <input
+            type="text"
+            id="search"
+            placeholder="Search student..."
+            oninput="displayStudents()"
+        >
+
+        <div class="student-list" id="studentList"></div>
+    </div>
+
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+    <div class="panel" style="height: 600px;" >
+        <h2>About Us</h2>
+
+        <p class="about-text">
+            Student Attendance Checker is
+            designed to help teachers monitor and manage
+            student attendance.
+
+            This website provides an easy way to record
+            students who are present and absent.
+
+            It also provides an attendance dashboard
+            where teachers can view the total number
+            of students, present students, and absent
+            students.
+        </p>
+    </div>
+</section>
+
+<!-- GALLERY (placeholder so the nav link works) -->
+<section id="gallery">
+    <div class="panel">
+        <h2>Gallery</h2>
+        <p class="about-text">Photos coming soon.</p>
+    </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+    <div class="panel">
+        <h2>Contact Us</h2>
+
+        <p class="about-text">
+            Have questions or suggestions?
+            Send us a message at 20264759@s.ubaguio.edu
+        </p>
+
+        <form onsubmit="sendMessage(event)">
+            <input type="text" id="contactName" placeholder="Your Name" required>
+            <input type="email" id="contactEmail" placeholder="Your Email" required>
+            <textarea id="contactMessage" placeholder="Your Message" rows="5" required></textarea>
+
+            <button class="add-btn" type="submit">Send Message</button>
+        </form>
+    </div>
+</section>
+
+</main>
+
+<footer>
+    <p>&copy; 2026 ClassTrack | Student Attendance Checker</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script>
+
+// LOAD STUDENTS
+let students = JSON.parse(localStorage.getItem("students") || "[]");
+
+// CURRENT DATE
+const today = new Date().toLocaleDateString("en-CA");
+
+document.getElementById("date").textContent =
+    "Date: " + new Date().toLocaleDateString();
+
+// SAVE STUDENTS
+function saveStudents() {
+    localStorage.setItem("students", JSON.stringify(students));
+}
+
+// ADD STUDENT
+function addStudent() {
+    let name = document.getElementById("studentName").value.trim();
+    let id = document.getElementById("studentID").value.trim();
+
+    if (name === "" || id === "") {
+        alert("Please enter student name and ID!");
+        return;
+    }
+
+    if (students.some(s => s.id === id)) {
+        alert("Student ID already exists!");
+        return;
+    }
+
+    students.push({ id: id, name: name, attendance: {} });
+
+    saveStudents();
+
+    document.getElementById("studentName").value = "";
+    document.getElementById("studentID").value = "";
+
+    displayStudents();
+}
+
+// MARK ATTENDANCE
+function markAttendance(id, status) {
+    let student = students.find(s => s.id === id);
+
+    if (!student) return;
+
+    student.attendance[today] = status;
+
+    saveStudents();
+    displayStudents();
+}
+
+// DISPLAY STUDENTS
+function displayStudents() {
+    let list = document.getElementById("studentList");
+    let search = document.getElementById("search").value.toLowerCase();
+
+    list.innerHTML = "";
+
+    let counts = { Present: 0, Late: 0, Absent: 0, Excuse: 0 };
+
+    const statusClass = {
+        Present: "status-present",
+        Absent: "status-absent",
+        Late: "status-late",
+        Excuse: "status-excused",
+        Unmarked: "status-unmarked"
+    };
+
+    let shown = 0;
+
+    students.forEach(student => {
+        let status = student.attendance[today] || "Unmarked";
+
+        if (counts[status] !== undefined) counts[status]++;
+
+        if (
+            !student.name.toLowerCase().includes(search) &&
+            !student.id.toLowerCase().includes(search)
+        ) {
+            return;
+        }
+
+        shown++;
+
+        let item = document.createElement("div");
+        item.className = "student-item";
+
+        let idLine = document.createElement("div");
+        idLine.className = "label";
+        idLine.textContent = "Student ID: " + student.id;
+
+        let nameLine = document.createElement("div");
+        nameLine.className = "name";
+        nameLine.textContent = student.name;
+
+        let statusLine = document.createElement("div");
+        statusLine.textContent = "Status: ";
+        let statusText = document.createElement("span");
+        statusText.textContent = status;
+        statusText.className = statusClass[status];
+        statusLine.appendChild(statusText);
+
+        let actions = document.createElement("div");
+        actions.className = "actions";
+
+        [
+            ["present-btn", "Present"],
+            ["late-btn", "Late"],
+            ["absent-btn", "Absent"],
+            ["excuse-btn", "Excuse"],
+            ["clear-btn", "Unmarked"]
+        ].forEach(([cls, value]) => {
+            let btn = document.createElement("button");
+            btn.className = cls;
+            btn.textContent = value === "Unmarked" ? "Clear" : value;
+            if (value === status) {
+                btn.classList.add("selected");
+                btn.setAttribute("aria-pressed", "true");
+            } else {
+                btn.setAttribute("aria-pressed", "false");
+            }
+            btn.addEventListener("click", () => markAttendance(student.id, value));
+            actions.appendChild(btn);
+        });
+
+        item.append(idLine, nameLine, statusLine, actions);
+        list.appendChild(item);
+    });
+
+    if (shown === 0) {
+        let empty = document.createElement("p");
+        empty.className = "empty";
+        empty.textContent = students.length === 0
+            ? "No students yet. Add one above."
+            : "No students match your search.";
+        list.appendChild(empty);
+    }
+
+    let marked = counts.Present + counts.Late + counts.Absent + counts.Excuse;
+
+    document.getElementById("total").textContent = students.length;
+    document.getElementById("present").textContent = counts.Present;
+    document.getElementById("late").textContent = counts.Late;
+    document.getElementById("absent").textContent = counts.Absent;
+    document.getElementById("excuse").textContent = counts.Excuse;
+    document.getElementById("unmarked").textContent = students.length - marked;
+}
+
+// CONTACT FORM
+function sendMessage(event) {
+    event.preventDefault();
+
+    let name = document.getElementById("contactName").value;
+    let email = document.getElementById("contactEmail").value;
+    let message = document.getElementById("contactMessage").value;
+
+    window.location.href =
+        "mailto:?subject=" +
+        encodeURIComponent("ClassTrack Message") +
+        "&body=" +
+        encodeURIComponent(
+            "Name: " + name +
+            "\nEmail: " + email +
+            "\nMessage: " + message
+        );
+}
+
+// STUDENT LIST: UPLOAD / DOWNLOAD
+const listBtn = document.getElementById("listBtn");
+const listMenu = document.getElementById("listMenu");
+const listFile = document.getElementById("listFile");
+const listMessage = document.getElementById("listMessage");
+
+function toggleMenu(open) {
+    const show = open === undefined ? listMenu.hidden : open;
+    listMenu.hidden = !show;
+    listBtn.setAttribute("aria-expanded", String(show));
+}
+
+function showListMessage(text, isError) {
+    listMessage.textContent = text;
+    listMessage.className = "list-message " + (isError ? "error" : "ok");
+}
+
+listBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    toggleMenu();
+});
+
+document.addEventListener("click", e => {
+    if (!listMenu.contains(e.target)) toggleMenu(false);
+});
+
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape") toggleMenu(false);
+});
+
+document.getElementById("uploadItem").addEventListener("click", () => {
+    toggleMenu(false);
+    listFile.click();
+});
+
+document.getElementById("downloadWordItem").addEventListener("click", () => {
+    toggleMenu(false);
+    downloadWord();
+});
+
+document.getElementById("downloadCsvItem").addEventListener("click", () => {
+    toggleMenu(false);
+    downloadCsv();
+});
+
+// split one line into cells (tab, comma or semicolon, with "quoted" support)
+function splitLine(line) {
+    if (line.includes("\t")) return line.split("\t").map(c => c.trim());
+
+    const delim = line.includes(",") ? "," : (line.includes(";") ? ";" : null);
+    if (!delim) return [line.trim()];
+
+    const cells = [];
+    let cur = "";
+    let quoted = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+            if (quoted && line[i + 1] === '"') { cur += '"'; i++; }
+            else quoted = !quoted;
+        } else if (ch === delim && !quoted) {
+            cells.push(cur.trim());
+            cur = "";
+        } else {
+            cur += ch;
+        }
+    }
+    cells.push(cur.trim());
+    return cells;
+}
+
+// add students from rows of [id, name]
+function importRows(rows) {
+    rows = rows
+        .map(r => r.map(c => c.trim().replace(/^'(?=[=+\-@])/, "")))
+        .filter(r => r.some(c => c));
+
+    let idCol = 0;
+    let nameCol = 1;
+
+    // use the header row if there is one
+    if (rows.length) {
+        const head = rows[0].map(c => c.toLowerCase());
+        const i = head.findIndex(c =>
+            /^(student\s*)?(id|id\s*(no|number)\.?|number)$/.test(c));
+        const n = head.findIndex(c => /^(student\s*)?name$/.test(c));
+        if (i !== -1 && n !== -1) {
+            idCol = i;
+            nameCol = n;
+            rows.shift();
+        }
+    }
+
+    let added = 0, duplicates = 0, skipped = 0;
+
+    rows.forEach(r => {
+        const id = r[idCol];
+        const name = r[nameCol];
+
+        if (!id || !name) { skipped++; return; }
+        if (students.some(s => s.id === id)) { duplicates++; return; }
+
+        students.push({ id: id, name: name, attendance: {} });
+        added++;
+    });
+
+    if (added > 0) {
+        saveStudents();
+        displayStudents();
+    }
+
+    if (added === 0 && rows.length === 0) {
+        showListMessage("The file has no students in it.", true);
+        return;
+    }
+
+    let msg = "Added " + added + " student" + (added === 1 ? "" : "s") + ".";
+    if (duplicates) msg += " " + duplicates + " skipped (ID already exists).";
+    if (skipped) msg += " " + skipped + " skipped (needs both an ID and a name).";
+    showListMessage(msg, added === 0);
+}
+
+listFile.addEventListener("change", async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const ext = file.name.split(".").pop().toLowerCase();
+
+    try {
+        if (ext === "docx") {
+            if (typeof mammoth === "undefined") {
+                showListMessage("Word upload needs an internet connection. Try CSV or TXT instead.", true);
+                return;
+            }
+
+            const result = await mammoth.convertToHtml({
+                arrayBuffer: await file.arrayBuffer()
+            });
+            const doc = new DOMParser().parseFromString(result.value, "text/html");
+            const tableRows = doc.querySelectorAll("table tr");
+
+            let rows;
+            if (tableRows.length) {
+                rows = Array.from(tableRows).map(tr =>
+                    Array.from(tr.children).map(td => td.textContent.trim()));
+            } else {
+                rows = Array.from(doc.querySelectorAll("p, li"))
+                    .map(p => splitLine(p.textContent));
+            }
+            importRows(rows);
+
+        } else if (["csv", "tsv", "txt"].includes(ext)) {
+            const text = (await file.text()).replace(/^\uFEFF/, "");
+            importRows(text.split(/\r?\n/).map(splitLine));
+
+        } else {
+            showListMessage("Please choose a .docx, .csv or .txt file. Older .doc files need to be saved as .docx first.", true);
+        }
+    } catch (err) {
+        showListMessage("Couldn't read that file. Check that it isn't damaged and try again.", true);
+    } finally {
+        e.target.value = "";
+    }
+});
+
+function downloadFile(filename, content, type) {
+    const url = URL.createObjectURL(new Blob([content], { type: type }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+function downloadWord() {
+    if (students.length === 0) {
+        showListMessage("There are no students to download yet.", true);
+        return;
+    }
+
+    const rows = students.map(s =>
+        "<tr><td>" + escapeHtml(s.id) + "</td><td>" + escapeHtml(s.name) +
+        "</td><td>" + escapeHtml(s.attendance[today] || "Unmarked") + "</td></tr>"
+    ).join("");
+
+    const html =
+        '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+        'xmlns:w="urn:schemas-microsoft-com:office:word">' +
+        '<head><meta charset="utf-8"><title>Student List</title></head><body>' +
+        "<h1>Student List</h1><p>Date: " + new Date().toLocaleDateString() + "</p>" +
+        '<table border="1" cellpadding="6" style="border-collapse:collapse">' +
+        "<tr><th>Student ID</th><th>Name</th><th>Status (Today)</th></tr>" +
+        rows + "</table></body></html>";
+
+    downloadFile("student-list.doc", html, "application/msword");
+    showListMessage("Downloaded student-list.doc", false);
+}
+
+function downloadCsv() {
+    if (students.length === 0) {
+        showListMessage("There are no students to download yet.", true);
+        return;
+    }
+
+    // quote every cell; a leading ' stops spreadsheets running a cell as a formula
+    const cell = value => {
+        let text = String(value);
+        if (/^[=+\-@]/.test(text)) text = "'" + text;
+        return '"' + text.replace(/"/g, '""') + '"';
+    };
+
+    const lines = [["Student ID", "Name", "Status (Today)"].map(cell).join(",")];
+    students.forEach(s => {
+        lines.push([s.id, s.name, s.attendance[today] || "Unmarked"].map(cell).join(","));
+    });
+
+    downloadFile("student-list.csv", "\uFEFF" + lines.join("\r\n"), "text/csv;charset=utf-8");
+    showListMessage("Downloaded student-list.csv", false);
+}
+
+// ACTIVE NAV LINK (highlights the section you're viewing)
+const navLinks = document.querySelectorAll("nav a");
+const sections = Array.from(navLinks).map(
+    a => document.querySelector(a.getAttribute("href"))
+);
+
+function setActive(id) {
+    navLinks.forEach(a =>
+        a.classList.toggle("active", a.getAttribute("href") === "#" + id)
+    );
+}
+
+function updateActiveNav() {
+    let current = sections[0].id;
+
+    sections.forEach(sec => {
+        if (sec.getBoundingClientRect().top <= 140) current = sec.id;
+    });
+
+    // at the very bottom of the page, the last section is active
+    if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 5) {
+        current = sections[sections.length - 1].id;
+    }
+
+    setActive(current);
+}
+
+navLinks.forEach(a =>
+    a.addEventListener("click", () =>
+        setActive(a.getAttribute("href").slice(1))
+    )
+);
+
+window.addEventListener("scroll", updateActiveNav, { passive: true });
+
+// INITIAL DISPLAY
+displayStudents();
+updateActiveNav();
+
+</script>
+
+</body>
+</html>
